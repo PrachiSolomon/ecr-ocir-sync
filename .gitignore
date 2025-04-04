@@ -1,0 +1,52 @@
+# Directories to ignore
+oldfiles/
+dashboard/
+
+# Credential files
+*credentials.sh
+*credential*.sh
+create-credentials.sh
+*-credentials.sh
+*-credential*.sh
+*_credentials.sh
+*_credential*.sh
+
+# Secret files
+*.secret
+*secret*.yaml
+*secret*.yml
+
+# Environment files that might contain credentials
+.env
+*.env
+.env.*
+
+# Local configuration files
+config.local.*
+*config*.local.*
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build artifacts and dependencies
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+node_modules/
+dist/
+build/
+*.exe
