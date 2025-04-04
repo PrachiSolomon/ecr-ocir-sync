@@ -22,6 +22,8 @@ This service runs in Kubernetes as a StatefulSet with the following components:
 - **Persistent Volumes**: Provides dedicated storage for large image operations
 - **HPA**: Automatically scales based on workload
 
+![Architecture Diagram](images/architecture-diagram.png)
+
 ## Prerequisites
 
 - Kubernetes cluster (tested on OKE - Oracle Kubernetes Engine)
