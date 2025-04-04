@@ -30,12 +30,12 @@ This service runs in Kubernetes as a StatefulSet with the following components:
 - AWS and OCI credentials
 - Storage class supporting ReadWriteOnce volumes (e.g., oci-bv)
 
-## Installation
+## Building the Docker Image
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-org/ecr-ocir-sync.git
+git clone https://github.com/PrachiSolomon/ecr-ocir-sync.git
 cd ecr-ocir-sync
 ```
 
@@ -53,8 +53,8 @@ kubectl create secret generic oci-credentials \
   --from-literal=OCI_TENANCY=YOUR_TENANCY \
   --from-literal=OCI_USERNAME=YOUR_USERNAME \
   --from-literal=OCI_AUTH_TOKEN=YOUR_AUTH_TOKEN \
-  --from-literal=OCI_REGION=ap-melbourne-1 \
-  --from-literal=OCI_REPO_REGION_KEY=mel,syd  # Comma-separated list of regions
+  --from-literal=OCI_REGION=YOUR_REGION \ # example ap-melbourne-1
+  --from-literal=OCI_REPO_REGION_KEY=YOUR_REGIONS  # Comma-separated list of regions, exmaple mel,syd 
 ```
 
 ### 3. Deploy the StatefulSet
@@ -79,16 +79,16 @@ kubectl apply -f image-sync-hpa.yaml
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `OCI_TENANCY` | Your OCI tenancy namespace | `sdncspltazsk` |
-| `OCI_USERNAME` | OCI username for registry authentication | `prachi.solomon@oracle.com` |
-| `OCI_AUTH_TOKEN` | Auth token for OCI registry | - |
-| `OCI_REPO_REGION_KEY` | Comma-separated list of region keys (e.g., `mel,syd`) | `mel` |
-| `OCI_REGION` | OCI region | `ap-melbourne-1` |
-| `AWS_ACCESS_KEY_ID` | AWS access key | - |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret access key | - |
-| `AWS_DEFAULT_REGION` | AWS default region | `us-west-2` |
+| Variable             | Description                                | Default           |
+|----------------------|--------------------------------------------|-------------------|
+| `OCI_TENANCY`        | Your OCI tenancy namespace                | `your tenancy namespace`    |
+| `OCI_USERNAME`       | OCI username for registry authentication  | `your username` |
+| `OCI_AUTH_TOKEN`     | Auth token for OCI registry               | -                 |
+| `OCI_REPO_REGION_KEY`| Comma-separated list of region keys (e.g., `mel,syd`) | `mel` |
+| `OCI_REGION`         | OCI region                                | `example ap-melbourne-1`  |
+| `AWS_ACCESS_KEY_ID`  | AWS access key                            | -                 |
+| `AWS_SECRET_ACCESS_KEY`| AWS secret access key                   | -                 |
+| `AWS_DEFAULT_REGION` | AWS default region                        | `example us-west-2`       |
 
 ### Kubernetes Resources
 
@@ -110,13 +110,13 @@ Triggers image synchronization between ECR and OCIR.
 
 ```json
 {
-  "account": "378344494888",
-  "region": "us-west-2",
-  "detail": {
-    "action-type": "PUSH",
-    "repository-name": "my-repo/my-image",
-    "image-tag": "latest"
-  }
+"account": "<AWS_ACCOUNT_ID>",
+    "region": "<AWS_REGION>",
+    "detail": {
+        "action-type": "PUSH",
+        "repository-name": "<REPOSITORY_NAME>",
+        "image-tag": "<IMAGE_TAG>"
+    }
 }
 ```
 
@@ -138,17 +138,49 @@ To automatically trigger synchronization when an image is pushed to ECR:
 
 ## Testing
 
-A test script is provided to simulate ECR events and load test the service:
+A test script is provided to simulate ECR events and load test the service. This script creates and pushes test images, simulates ECR events, and monitors HPA behavior.
+
+Setting up test environment
+First, configure the required environment variables:
+```
+# AWS configuration
+export AWS_ACCOUNT_ID="your-aws-account-id"
+export AWS_REGION="us-west-2"
+export AWS_REPO_NAME="your-repo-name"  
+
+# OCIR configuration
+export OCIR_TENANCY="your-oci-tenancy"
+export OCIR_USERNAME="your-tenancy/your-username@example.com"
+export OCIR_PASSWORD="your-auth-token"
+
+# Service URL - internal K8s service or external endpoint
+export SERVICE_URL="http://image-sync:8080/sync"  # Use appropriate URL
+```
+Running the test
+Execute the script:
 
 ```bash
 ./test-hpa.sh
 ```
 
-This script:
-- Creates and pushes test images to ECR
-- Triggers the sync API with various payloads
-- Monitors HPA scaling behavior
-- Reports resource usage statistics
+The script performs the following:
+
+- Logs in to both ECR and OCIR repositories
+- Creates randomized test images and pushes them to ECR
+- Sends direct API calls to your sync service
+- Monitors HPA scaling and resource usage
+- Runs tests in parallel to simulate load
+- Reports detailed metrics throughout the test
+
+## Customizing the test**
+
+You can adjust the test parameters by modifying these variables at the beginning of the script:
+
+```
+TEST_DURATION=600  # Duration in seconds (10 minutes by default)
+NUM_PARALLEL=3     # Number of parallel operations
+DELAY=5            # Seconds between operation batches
+```
 
 ## Performance Considerations
 
@@ -177,4 +209,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Oracle Cloud Infrastructure and AWS teams
 - The Kubernetes community for HPA and StatefulSet capabilities
 
-Similar code found with 2 license types
+
+````
